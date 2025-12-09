@@ -4,8 +4,6 @@ def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Temporal Flow Matching (discrete) training")
 
     # data
-    parser.add_argument("--data-root", type=str, default=None,
-                        help="Root directory of your dataset (unused by DummyTemporalDataset).")
     parser.add_argument("--batch-size", type=int, default=2)
     parser.add_argument("--num-workers", type=int, default=4)
 
@@ -26,6 +24,8 @@ def get_args() -> argparse.Namespace:
     parser.add_argument("--device", type=str, default="cuda", choices=["cpu", "cuda"])
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--save_dir", type=str, default="checkpoints")
+    parser.add_argument("--dataset", type=str, default="acdc",
+                        help="Dataset to use. Only used if --dummy is not set.")
     parser.add_argument("--dummy", action="store_true",
                         help="Use DummyTemporalDataset instead of a real dataset.")
 

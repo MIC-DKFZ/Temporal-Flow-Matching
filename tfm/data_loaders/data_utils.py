@@ -2,7 +2,10 @@ import argparse
 import torch
 from typing import Tuple
 from torch.utils.data import DataLoader, Dataset
+import os
 import numpy as np
+
+from .acdc_loader import ACDCDataset
 
 class DummyTemporalDataset(Dataset):
     """
@@ -57,10 +60,16 @@ def build_dataloader(args: argparse.Namespace) -> DataLoader:
     if args.dummy:
         dataset = DummyTemporalDataset()
     else:
-
-        raise NotImplementedError(
+        if args.dataset == 'acdc':
+            data_dir = os.getenv("DATA_DIR_ACDC", "./data/ACDC/")
+            dataset = ACDCDataset(
+                data_dir=data_dir,
+                **vars(args)
+            )
+        else:
+            raise NotImplementedError(
             "Provide your own dataset or run with --use-dummy-data to test the pipeline."
-        )
+            )
 
     loader = DataLoader(
         dataset,

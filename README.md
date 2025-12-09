@@ -1,6 +1,6 @@
 # Temporal Flow Matching
 
-This repository is the official implementation of **Temporal Flow Matching (TFM)**, a generative framework for longitudinal medical imaging.   
+This repository is the official implementation of **Temporal Flow Matching (TFM)**, a spatio-temporal and generative framework for longitudinal medical imaging.   
 
 The method is presented in the paper:
 [Temporal Flow Matching for Learning Spatio-Temporal Trajectories in 4D Longitudinal Medical Imaging](https://arxiv.org/abs/2508.21580).
@@ -11,17 +11,18 @@ The method is presented in the paper:
 - Discrete variant (grid-based, e.g. regular follow-up times).
 - Supports 3D+T or 4D sequences (e.g. MRI volumes).
 - Simple, dependency-light PyTorch code.
+- Supports longitudinal and spatio-temporal medical imaging datasets.
 
 
 ## Status
 
 This repository is still WIP. 
-Regular updates will follow soon.
+Regular updates will follow soon!
 
 ## Installation
 Clone this repository and install the required packages:
 ```bash
-git clone
+git clone https://github.com/MIC-DKFZ/Temporal-Flow-Matching.git
 cd tfm
 pip install -e .
 ```

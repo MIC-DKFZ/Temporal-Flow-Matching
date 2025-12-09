@@ -56,6 +56,10 @@ def train_one_epoch(
 
 def main() -> None:
     args = get_args()
+    if args.debug:
+        print("Running in debug mode.")
+        args.num_epochs = 2
+        args.log_interval = 1
     set_seed(args.seed)
     device = get_device(args.device)
 

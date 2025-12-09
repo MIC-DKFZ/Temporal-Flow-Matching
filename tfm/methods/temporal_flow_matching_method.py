@@ -13,7 +13,7 @@ from torchdiffeq import odeint_adjoint as odeint
 from torchsde import sdeint
 from torchdyn.models import NeuralODE
 from torchcfm.conditional_flow_matching import *
-from fm_utils.unet_wrapper import UNetModelWrapper as UNetModel
+from .fm_utils.unet_wrapper import UNetModelWrapper as UNetModel
 import torch
 from torchdiffeq import odeint, odeint_adjoint
 from torch import nn
