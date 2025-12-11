@@ -11,6 +11,13 @@ import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
 
+
+import datetime
+from pathlib import Path
+
+
+from utils.validation_utils import val_step
+
 from tfm.methods.temporal_flow_matching_method import TemporalFlowMatching
 
 
@@ -43,13 +50,8 @@ def train_one_epoch(
         loss = model.training_step(batch, batch_idx)
         loss.backward()
         optimizer.step()
-
         running_loss += loss.item()
         num_batches += 1
-
-        if (batch_idx + 1) % log_interval == 0:
-            print(f"Epoch {epoch} | Batch {batch_idx + 1}/{len(loader)} | "
-                  f"Loss: {loss.item():.4f}")
 
     return running_loss / max(1, num_batches)
 
@@ -63,9 +65,10 @@ def main() -> None:
     set_seed(args.seed)
     device = get_device(args.device)
 
-    os.makedirs(args.save - dir if hasattr(args, "save-dir") else args.save_dir, exist_ok=True)
+    os.makedirs(args.save_dir, exist_ok=True)
 
     train_loader = build_dataloader(args)
+    validation_loader = build_dataloader(args,train_test_val='val')
     data_shape = train_loader.dataset._get_data_shape()
     model = build_model(args, device, data_shape)
 
@@ -74,7 +77,7 @@ def main() -> None:
         lr=args.lr,
         weight_decay=args.weight_decay,
     )
-
+    scheduler = build_linear_warmup_scheduler(optimizer, num_epochs=args.num_epochs)
     print(f"Using device: {device}")
     print(f"Number of train batches: {len(train_loader)}")
 
@@ -88,14 +91,16 @@ def main() -> None:
             epoch=epoch,
             log_interval=args.log_interval,
         )
-
+        scheduler.step()
         print(f"Epoch {epoch} completed. Average loss: {avg_loss:.4f}")
+
+        # if epoch % args.log_interval == 0:
+            # val_result = val_step(validation_loader, model, **vars(args)) TODO:
 
         # trivial "best" checkpoint
         if avg_loss < best_loss and not args.debug:
             best_loss = avg_loss
-            import datetime
-            from pathlib import Path
+
             current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
             ckpt_path = Path(args.save_dir) / f"{current_time}_tfm_best.pt"
             # ckpt_path = os.path.join(args.save_dir, f"{current_time}_tfm_best.pt")

@@ -139,10 +139,11 @@ class TemporalFlowMatching(nn.Module):
         # does not actually perform the validation, just does the prediction
         # misnomer
         t_span = torch.linspace(0, 1, self.n_T).to(batch.device)
+        B, T, C, H, D, W = batch.shape
         if self.fill_context:
             batch = self.fill_missing_frames(batch)
-        traj = odeint(self.u_net, batch.squeeze(2), t_span, atol=1e-5, rtol=1e-5,
-                      adjoint_params=self.u_net.parameters())
+        batch = batch.reshape(B, T*C, H, D, W)
+        traj = odeint(self.u_net, batch, t_span, atol=1e-5, rtol=1e-5)
         # canonically we only return the final time point
         val_res = traj[-1]
 

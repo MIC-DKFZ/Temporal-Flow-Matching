@@ -1,7 +1,5 @@
 import os
 import random
-from bisect import bisect_left
-from itertools import accumulate
 
 import matplotlib.pyplot as plt
 import nibabel as nib
@@ -9,9 +7,6 @@ import numpy as np
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
-from scipy.interpolate import RegularGridInterpolator
-from scipy.ndimage import gaussian_filter, map_coordinates
-from tqdm import tqdm
 
 
 class ACDCDataset(Dataset):

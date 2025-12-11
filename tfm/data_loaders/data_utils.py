@@ -42,7 +42,7 @@ class DummyTemporalDataset(Dataset):
 
     def __getitem__(self, idx):
         # synthetic sequence: (T, C, D, H, W)
-        x = torch.randn(self.T+1, self.C, self.D, self.H, self.W)
+        x = torch.randn(self.T+1, self.C, self.D, self.H, self.W).clip(0, 1)
 
         return {
             "target_img": x[[-1]],  # (1, C, D, H, W)
@@ -56,7 +56,7 @@ class DummyTemporalDataset(Dataset):
     def _get_data_shape(self) -> Tuple[int, int, int, int, int]:
         return (self.T, self.C, self.D, self.H, self.W)
 
-def build_dataloader(args: argparse.Namespace) -> DataLoader:
+def build_dataloader(args: argparse.Namespace, train_test_val='trn') -> DataLoader:
     if args.dummy:
         dataset = DummyTemporalDataset()
     else:
@@ -64,6 +64,7 @@ def build_dataloader(args: argparse.Namespace) -> DataLoader:
             data_dir = os.getenv("DATA_DIR_ACDC", "./data/ACDC/")
             dataset = ACDCDataset(
                 data_dir=data_dir,
+                split=train_test_val,
                 **vars(args)
             )
         else:
