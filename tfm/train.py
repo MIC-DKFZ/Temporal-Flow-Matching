@@ -14,17 +14,17 @@ from torch.utils.data import Dataset, DataLoader
 
 import datetime
 from pathlib import Path
-
-
 from utils.validation_utils import val_step
-
 from tfm.methods.temporal_flow_matching_method import TemporalFlowMatching
 
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+import tqdm
 
-def build_model(args: argparse.Namespace, device: torch.device, data_shape: Tuple) -> nn.Module:
+def build_model(args: argparse.Namespace, device: torch.device) -> nn.Module:
     # todo: build the option to have different models here
     model = TemporalFlowMatching(
-        in_shape=data_shape,
         feature_size=args.base_channels,
         **(vars(args)),
     )
@@ -43,8 +43,9 @@ def train_one_epoch(
     model.train()
     running_loss = 0.0
     num_batches = 0
+    pbar = tqdm.tqdm(loader, desc=f"Epoch: {epoch}", leave=True, ncols=130)
 
-    for batch_idx, batch in enumerate(loader):
+    for batch_idx, batch in enumerate(pbar):
 
         optimizer.zero_grad()
         loss = model.training_step(batch, batch_idx)
@@ -70,7 +71,8 @@ def main() -> None:
     train_loader = build_dataloader(args)
     validation_loader = build_dataloader(args,train_test_val='val')
     data_shape = train_loader.dataset._get_data_shape()
-    model = build_model(args, device, data_shape)
+    args.in_shape = data_shape
+    model = build_model(args, device)
 
     optimizer = torch.optim.AdamW(
         model.parameters(),
@@ -81,7 +83,7 @@ def main() -> None:
     print(f"Using device: {device}")
     print(f"Number of train batches: {len(train_loader)}")
 
-    best_loss = float("inf")
+    best_val = float("inf")
     for epoch in range(1, args.num_epochs + 1):
         avg_loss = train_one_epoch(
             model=model,
@@ -94,27 +96,28 @@ def main() -> None:
         scheduler.step()
         print(f"Epoch {epoch} completed. Average loss: {avg_loss:.4f}")
 
-        # if epoch % args.log_interval == 0:
-            # val_result = val_step(validation_loader, model, **vars(args)) TODO:
+        if epoch % args.log_interval == 0:
+            val_result = val_step(validation_loader, model, min_val=best_val, **vars(args))
+            # currently, we still insert the best loss into the val step, will be deprecated
+            avg_val = val_result[1]
 
-        # trivial "best" checkpoint
-        if avg_loss < best_loss and not args.debug:
-            best_loss = avg_loss
-
-            current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            ckpt_path = Path(args.save_dir) / f"{current_time}_tfm_best.pt"
-            # ckpt_path = os.path.join(args.save_dir, f"{current_time}_tfm_best.pt")
-            torch.save(
-                {
-                    "model_state_dict": model.state_dict(),
-                    "optimizer_state_dict": optimizer.state_dict(),
-                    "epoch": epoch,
-                    "avg_loss": avg_loss,
-                    "args": vars(args),
-                },
-                ckpt_path,
-            )
-            print(f"Saved new best checkpoint to {ckpt_path}")
+            # "best" checkpoint
+            if avg_val < best_val and not args.debug:
+                best_val = avg_val
+                current_time = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                ckpt_path = Path(args.save_dir) / f"{current_time}_tfm_best.pt"
+                # ckpt_path = os.path.join(args.save_dir, f"{current_time}_tfm_best.pt")
+                torch.save(
+                    {
+                        "model_state_dict": model.state_dict(),
+                        "optimizer_state_dict": optimizer.state_dict(),
+                        "epoch": epoch,
+                        "avg_loss": avg_loss,
+                        "args": vars(args),
+                    },
+                    ckpt_path,
+                )
+                print(f"Saved new best checkpoint to {ckpt_path}")
 
 
 if __name__ == "__main__":

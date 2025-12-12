@@ -18,7 +18,7 @@ class DummyTemporalDataset(Dataset):
 
     def __init__(
             self,
-            length: int = 64,
+            length: int = 8,
             T: int = 4,
             C: int = 1,
             D: int = 32,
@@ -65,6 +65,7 @@ def build_dataloader(args: argparse.Namespace, train_test_val='trn') -> DataLoad
             dataset = ACDCDataset(
                 data_dir=data_dir,
                 split=train_test_val,
+                num_to_keep_context=5,
                 **vars(args)
             )
         else:

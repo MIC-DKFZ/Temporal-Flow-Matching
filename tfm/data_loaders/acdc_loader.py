@@ -98,7 +98,7 @@ class ACDCDataset(Dataset):
 
     def precompute_randomness(self):
         """Precompute the random target index and missing mask for each sample."""
-        print("Precomputing random target index and missing mask for deterministic validation and tra")
+        print("Precomputing random target index and missing mask for deterministic validation and test")
         self.indices_random = []
         N = len(self.data)
         for idx in range(N):
