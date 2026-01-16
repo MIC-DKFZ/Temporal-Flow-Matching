@@ -1,9 +1,20 @@
+# Archived
+
+This repository is no longer actively maintained.
+All new development has been moved to the following repository:
+https://github.com/MIC-DKFZ/Longitudinal4DMed
+
+All the same features and functionalities are available there.
+Additionally, we implemented a continuous time version of Temporal Flow Matching.
+
 # Temporal Flow Matching
 
 This repository is the official implementation of **Temporal Flow Matching (TFM)**, a spatio-temporal and generative framework for longitudinal medical imaging.   
 
 The method is presented in the paper:
 [Temporal Flow Matching for Learning Spatio-Temporal Trajectories in 4D Longitudinal Medical Imaging](https://arxiv.org/abs/2508.21580).
+
+
 
 ## Features
 
