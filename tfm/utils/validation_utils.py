@@ -248,7 +248,6 @@ def update_fid_metric(val_y, val_x, fid_metric):
     # Update the FID metric
     fid_metric.update(real_2d, True)
     fid_metric.update(gen_2d, False)
-    # calculate the mask here as well??
     return
 
 
@@ -282,7 +281,7 @@ def val_step(valid_loader, train_model, device, metric_functions = metric_functi
              log_images=False, time_string=None, return_metrics=True, mask_ratio=None, mask_order='front',
              **kwargs):
     # val_loss = torch.inf
-    plotting = False
+    do_plotting = True
     # do not do this every time?
     for name, metric in metric_functions.items():
         try:
@@ -296,7 +295,7 @@ def val_step(valid_loader, train_model, device, metric_functions = metric_functi
         total_last_metrics = {f'last_{name}': 0.0 for name, _ in total_metrics.items()}
 
         # if we want to plot the distribution over the batches
-        if plotting:
+        if do_plotting:
             metric_list = {name: [] for name, _ in metric_functions.items()}
         else:
             metric_list = None
@@ -305,7 +304,7 @@ def val_step(valid_loader, train_model, device, metric_functions = metric_functi
             batch_x_val, batch_y_val, batch_x_seg, batch_y_seg, time_points = _extract_batch(batch_val, device)
             batch_x_val = _apply_temporal_masking_to_input(batch_x_val, mask_ratio, mask_order)
             last_context_image = get_last_context_image_baseline(batch_x_val)
-            # B, T, C, W, H, D = batch_x_val.shape
+            B, T, C, W, H, D = batch_x_val.shape
 
             # do some reshaping which may not happen in the model
             model_output, batch_y_val = _forward_and_reshape(
@@ -337,7 +336,7 @@ def val_step(valid_loader, train_model, device, metric_functions = metric_functi
                 batch_y_val,
                 no_change_mask,
                 total_metrics,
-                plotting=plotting,
+                # plotting=do_plotting, todo:change to different name
                 metric_list=metric_list,
             )
 
@@ -349,10 +348,18 @@ def val_step(valid_loader, train_model, device, metric_functions = metric_functi
                     no_change_mask,
                     total_last_metrics,
                     str_prefix='last_',
-                    plotting=plotting,
+                    # plotting=do_plotting, # todo: see above
                     metric_list=metric_list,
                 )
-
+                if do_plotting:
+                    from utils.plotting import make_prediction_grid_and_save
+                    for batch in range(B):
+                        for channel in range(C):
+                            make_prediction_grid_and_save(batch_y_val[batch, channel],
+                                                          last_context_image[batch, channel],
+                                                          model_output[batch, channel],
+                                                          'test',
+                                                          'test_method')
         avg_metrics = {key: value / len(valid_loader) for key, value in total_metrics.items()}
 
         if load_torcheval:

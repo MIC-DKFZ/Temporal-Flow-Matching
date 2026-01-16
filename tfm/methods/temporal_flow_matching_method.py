@@ -54,7 +54,7 @@ class TemporalFlowMatching(nn.Module):
         self.type_context = kwargs.get('fm_context', 'du')
         # self.no_context = True
         self.n_T = int(kwargs.get('number_evals', 10))  #50 # 250
-        self.training_noise = kwargs.get('training_noise', 0.00)
+        self.training_noise = kwargs.get('training_noise', 0.05)
         # vivit_model = ViVitModule(image_size, patch_size, num_frames)
         feature_size = kwargs.get('feature_size', 256)
         # self.u_net_type = 'fmu'
